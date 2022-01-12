@@ -142,6 +142,7 @@ class MultiSelectChipDisplay<V> extends StatelessWidget {
         label: Container(
           width: chipWidth,
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               if (item.leading != null) item.leading!,
               Expanded(
