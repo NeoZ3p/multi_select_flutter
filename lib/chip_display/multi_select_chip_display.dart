@@ -141,21 +141,29 @@ class MultiSelectChipDisplay<V> extends StatelessWidget {
             : null,
         label: Container(
           width: chipWidth,
-          child: Text(
-            item.label,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: colorator != null && colorator!(item.value) != null
-                  ? textStyle != null
-                      ? textStyle!.color ?? colorator!(item.value)
-                      : colorator!(item.value)
-                  : textStyle != null && textStyle!.color != null
-                      ? textStyle!.color
-                      : chipColor != null
-                          ? chipColor!.withOpacity(1)
-                          : null,
-              fontSize: textStyle != null ? textStyle!.fontSize : null,
-            ),
+          child: Row(
+            children: [
+              if (item.leading != null) item.leading!,
+              Expanded(
+                child: Text(
+                  item.label,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: colorator != null && colorator!(item.value) != null
+                        ? textStyle != null
+                            ? textStyle!.color ?? colorator!(item.value)
+                            : colorator!(item.value)
+                        : textStyle != null && textStyle!.color != null
+                            ? textStyle!.color
+                            : chipColor != null
+                                ? chipColor!.withOpacity(1)
+                                : null,
+                    fontSize: textStyle != null ? textStyle!.fontSize : null,
+                  ),
+                ),
+              ),
+              if (item.trailing != null) item.trailing!,
+            ],
           ),
         ),
         selected: items!.contains(item),

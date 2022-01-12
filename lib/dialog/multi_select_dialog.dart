@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:multi_select_flutter/util/get_unselected_theme_data.dart';
 import '../util/multi_select_actions.dart';
 import '../util/multi_select_item.dart';
 import '../util/multi_select_list_type.dart';
@@ -118,9 +119,10 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
   /// Returns a CheckboxListTile
   Widget _buildListItem(MultiSelectItem<V> item) {
     return Theme(
-      data: ThemeData(
-        unselectedWidgetColor: widget.unselectedColor ?? Colors.black54,
-        accentColor: widget.selectedColor ?? Theme.of(context).primaryColor,
+      data: getItemThemeData(
+        context,
+        selectedColor: widget.selectedColor,
+        unselectedColor: widget.unselectedColor,
       ),
       child: CheckboxListTile(
         checkColor: widget.checkColor,
@@ -128,17 +130,24 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
         activeColor: widget.colorator != null
             ? widget.colorator!(item.value) ?? widget.selectedColor
             : widget.selectedColor,
-        title: Text(
-          item.label,
-          style: _selectedValues.contains(item.value)
-              ? widget.selectedItemsTextStyle
-              : widget.itemsTextStyle,
+        title: Row(
+          children: [
+            if (item.leading != null) item.leading!,
+            Expanded(
+              child: Text(
+                item.label,
+                style: _selectedValues.contains(item.value)
+                    ? widget.selectedItemsTextStyle
+                    : widget.itemsTextStyle,
+              ),
+            ),
+            if (item.trailing != null) item.trailing!,
+          ],
         ),
         controlAffinity: ListTileControlAffinity.leading,
         onChanged: (checked) {
           setState(() {
-            _selectedValues = widget.onItemCheckedChange(
-                _selectedValues, item.value, checked!);
+            _selectedValues = widget.onItemCheckedChange(_selectedValues, item.value, checked!);
           });
           if (widget.onSelectionChanged != null) {
             widget.onSelectionChanged!(_selectedValues);
@@ -154,41 +163,46 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
       padding: const EdgeInsets.all(2.0),
       child: ChoiceChip(
         backgroundColor: widget.unselectedColor,
-        selectedColor:
-            widget.colorator != null && widget.colorator!(item.value) != null
-                ? widget.colorator!(item.value)
-                : widget.selectedColor != null
-                    ? widget.selectedColor
-                    : Theme.of(context).primaryColor.withOpacity(0.35),
-        label: Text(
-          item.label,
-          style: _selectedValues.contains(item.value)
-              ? TextStyle(
-                  color: widget.colorator != null &&
-                          widget.colorator!(item.value) != null
-                      ? widget.selectedItemsTextStyle != null
-                          ? widget.selectedItemsTextStyle!.color ??
-                              widget.colorator!(item.value)!.withOpacity(1)
-                          : widget.colorator!(item.value)!.withOpacity(1)
-                      : widget.selectedItemsTextStyle != null
-                          ? widget.selectedItemsTextStyle!.color ??
-                              (widget.selectedColor != null
-                                  ? widget.selectedColor!.withOpacity(1)
-                                  : Theme.of(context).primaryColor)
-                          : widget.selectedColor != null
-                              ? widget.selectedColor!.withOpacity(1)
-                              : null,
-                  fontSize: widget.selectedItemsTextStyle != null
-                      ? widget.selectedItemsTextStyle!.fontSize
-                      : null,
-                )
-              : widget.itemsTextStyle,
+        selectedColor: widget.colorator != null && widget.colorator!(item.value) != null
+            ? widget.colorator!(item.value)
+            : widget.selectedColor != null
+                ? widget.selectedColor
+                : Theme.of(context).primaryColor.withOpacity(0.35),
+        label: Row(
+          children: [
+            if (item.leading != null) item.leading!,
+            Expanded(
+              child: Text(
+                item.label,
+                style: _selectedValues.contains(item.value)
+                    ? TextStyle(
+                        color: widget.colorator != null && widget.colorator!(item.value) != null
+                            ? widget.selectedItemsTextStyle != null
+                                ? widget.selectedItemsTextStyle!.color ??
+                                    widget.colorator!(item.value)!.withOpacity(1)
+                                : widget.colorator!(item.value)!.withOpacity(1)
+                            : widget.selectedItemsTextStyle != null
+                                ? widget.selectedItemsTextStyle!.color ??
+                                    (widget.selectedColor != null
+                                        ? widget.selectedColor!.withOpacity(1)
+                                        : Theme.of(context).primaryColor)
+                                : widget.selectedColor != null
+                                    ? widget.selectedColor!.withOpacity(1)
+                                    : null,
+                        fontSize: widget.selectedItemsTextStyle != null
+                            ? widget.selectedItemsTextStyle!.fontSize
+                            : null,
+                      )
+                    : widget.itemsTextStyle,
+              ),
+            ),
+            if (item.trailing != null) item.trailing!,
+          ],
         ),
         selected: _selectedValues.contains(item.value),
         onSelected: (checked) {
           setState(() {
-            _selectedValues = widget.onItemCheckedChange(
-                _selectedValues, item.value, checked);
+            _selectedValues = widget.onItemCheckedChange(_selectedValues, item.value, checked);
           });
           if (widget.onSelectionChanged != null) {
             widget.onSelectionChanged!(_selectedValues);
@@ -219,15 +233,13 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
                                 hintText: widget.searchHint ?? "Search",
                                 focusedBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(
-                                    color: widget.selectedColor ??
-                                        Theme.of(context).primaryColor,
+                                    color: widget.selectedColor ?? Theme.of(context).primaryColor,
                                   ),
                                 ),
                               ),
                               onChanged: (val) {
                                 setState(() {
-                                  _items = widget.updateSearchQuery(
-                                      val, widget.items);
+                                  _items = widget.updateSearchQuery(val, widget.items);
                                 });
                               },
                             ),
@@ -248,15 +260,13 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
                 ],
               ),
             ),
-      contentPadding:
-          widget.listType == null || widget.listType == MultiSelectListType.LIST
-              ? EdgeInsets.only(top: 12.0)
-              : EdgeInsets.all(20),
+      contentPadding: widget.listType == null || widget.listType == MultiSelectListType.LIST
+          ? EdgeInsets.only(top: 12.0)
+          : EdgeInsets.all(20),
       content: Container(
         height: widget.height,
         width: MediaQuery.of(context).size.width * 0.72,
-        child: widget.listType == null ||
-                widget.listType == MultiSelectListType.LIST
+        child: widget.listType == null || widget.listType == MultiSelectListType.LIST
             ? ListView.builder(
                 itemCount: _items.length,
                 itemBuilder: (context, index) {
@@ -275,10 +285,10 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
               Text(
                 "CANCEL",
                 style: TextStyle(
-                  color: (widget.selectedColor != null &&
-                          widget.selectedColor != Colors.transparent)
-                      ? widget.selectedColor!.withOpacity(1)
-                      : Theme.of(context).primaryColor,
+                  color:
+                      (widget.selectedColor != null && widget.selectedColor != Colors.transparent)
+                          ? widget.selectedColor!.withOpacity(1)
+                          : Theme.of(context).primaryColor,
                 ),
               ),
           onPressed: () {
@@ -290,10 +300,10 @@ class _MultiSelectDialogState<V> extends State<MultiSelectDialog<V>> {
               Text(
                 'OK',
                 style: TextStyle(
-                  color: (widget.selectedColor != null &&
-                          widget.selectedColor != Colors.transparent)
-                      ? widget.selectedColor!.withOpacity(1)
-                      : Theme.of(context).primaryColor,
+                  color:
+                      (widget.selectedColor != null && widget.selectedColor != Colors.transparent)
+                          ? widget.selectedColor!.withOpacity(1)
+                          : Theme.of(context).primaryColor,
                 ),
               ),
           onPressed: () {
